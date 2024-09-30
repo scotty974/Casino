@@ -1,6 +1,8 @@
 import random
 def random_number(level):
-    nb_try = 0
+    # valeur par défault
+    nb_try = 3
+    # création des levels
     for i in range(3):
         nb_try += 2
         random_nb = random.randrange(1, 10+10)
@@ -9,3 +11,4 @@ def random_number(level):
         else : 
             print('Rentrez un niveau valide !')
         
+print(random_number(2))

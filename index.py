@@ -71,6 +71,7 @@ class User:
 
     def set_level(self, new_level:int):
         self.level = new_level
+        self.update()
 
     def get_id(self):
         return self.__id
@@ -106,6 +107,9 @@ class Casino:
     def __init__(self,player:User):
         self.player = player
         self.current_level = None
+
+    def loose_gain(self,nb_mise):
+        return self.player.set_money(self.player.get_money() - nb_mise)
 
     def define_gain(self):
         # demande ma mise
@@ -151,9 +155,19 @@ class Casino:
                 new_gain = self.player.get_money() + gain
                 self.player.set_money(new_gain)
                 print("Votre solde est de : {} euros".format(new_gain))
+                new_level = self.player.get_level() + 1
+                if new_level <= 3:
+                    self.player.set_level(new_level)
+                print("Vous êtes au niveau {}".format(new_level))
                 break
         else :
             print("Dommage vous avez perdu ! Le nombre exact est : {}".format(level_data['random_nb']))
+            self.loose_gain(nb_mise=nb_mise)
+            print("Vous avez perdu : {} euros. ".format(nb_mise))
+            new_level = self.player.get_level() - 1
+            if new_level <= 1 :
+                self.player.set_level(new_level)
+            print("Vous êtes niveau : {}".format(new_level))
         self.game_played(nb_coups, nb_mise)
 
     def game_played(self,nb_coups,nb_mise):

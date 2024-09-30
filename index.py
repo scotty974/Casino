@@ -94,64 +94,81 @@ class Casino:
     def __init__(self,player:User):
         self.player = player
         self.current_level = None
-        self.user_input = None
+        self.nb_user = None
+        self.display_rule = False
+        print(f"Hello {self.player.get_pseudo()}, vous avez {self.player.get_money()}$, Très bien ! Installez vous SVP à la table de pari.")
 
-    def loose_gain(self,nb_mise):
-        return self.player.set_money(self.player.get_money() - nb_mise)
-
-    def define_gain(self):
-        # demande ma mise
-        nb_mise = int(input("Entrez votre mise : "))
-        while nb_mise == 0 :
-            nb_mise = int(input("Entrez une valeur supérieur à 0 : "))
-        if self.player.get_money() < nb_mise :
-            response = input("Vous n'avez pas assez d'argent ! Voulez vous rajouter de l'argent ? Y/N : ")
-            if response == 'Y':
-                new_money = int(input("Entrez la somme : "))
-                self.player.set_money(self.player.get_money() + new_money)
-            elif response == 'N' :
-                nb_mise = int(input("Entrez une nouvelle mise : "))
-
-        gain = round(math.exp(self.player.get_level())*nb_mise, 2)
-        return gain, nb_mise
+    def loose_gain(self,mise):
+        return self.player.set_money(self.player.get_money() - mise)
 
     def choose_level(self):
 
-        print(f"Your current level is {self.player.get_level()}")
+        print(f"{self.player.get_pseudo()}, vous êtes level {self.player.get_level()}")
         self.current_level = None
         while self.current_level is None:
-            level = int(input("Choisi ton level [1,2,3] : "))
+            level = int(input("Choisissez votre level [1,2,3] : "))
             if level <= self.player.get_level():
                 self.current_level = level
                 break
             else:
-                print("Le niveau choisi est trop élevé pas rapport au tien")
+                print("Le niveau choisi est trop élevé pas rapport au votre")
 
-    def player_gain(self):
+    def get_mise(self):
+        mise = None
+        print(f"Current balance : {self.player.get_money()}$")
+        while mise is None:
+            try : 
+                mise = float(input("Pari de niveau {} selectionné, veuillez saisir une mise : ".format(self.current_level)))
+                if mise <= self.player.get_money():
+                    self.player.set_money(self.player.get_money()-mise)
+                    return mise
+                else:
+                    difference = mise-self.player.get_money()
+                    if input(f"Vous n'avez pas les fonds suffisants, souhaitez vous apporter la différence ({difference}$) ? Y/N : ") == "Y":
+                        self.player.set_money(self.player.get_money()+difference)
+                        self.player.set_money(self.player.get_money()-mise)
+                        return mise
+                    mise = None
+            except :
+                print("!format de la saisie incorrect!")
+                mise = None
 
-        gain, mise = self.define_gain()
+
+    def apply_gain(self, mise, nb_essais_max):
+        l3 = [2,1,0.5]
+        l5 = [4]+l3+[0.25]
+        l7 = [8]+l5+[0.125]
+        if nb_essais_max == 3:
+            money = l3[self.nb_coup-1]*mise
+        elif nb_essais_max == 5:
+            money = l5[self.nb_coup-1]*mise
+        elif nb_essais_max == 7:
+            money = l7[self.nb_coup-1]*mise
+        self.player.set_money(self.player.get_money()+money)
+
+    def partie(self):
+
         self.choose_level()
-        nb_essais_max, borne_sup, nb_a_trouver = random_number(self.current_level)
-        self.nb_essais = 0
+        mise = self.get_mise()
+        nb_essais_max, borne_sup, nb_python = random_number(self.current_level)
+        self.nb_coup = 0
         reussite = False
 
-        while self.nb_essais < nb_essais_max:
+        while self.nb_coup < nb_essais_max:
 
-            self.nb_essais +=1
+            self.nb_coup +=1
 
             if self.get_input() == False:
                 print("Bravo, vous avez perdu un essai.")
             else:
-                if self.user_input > nb_a_trouver:
+                if self.nb_user > nb_python:
                     print("Trop grand ! ")
-                elif self.user_input < nb_a_trouver:
+                elif self.nb_user < nb_python:
                     print("Trop petit ! ")
                 else :
-                    print("Bingo {} ! Vous avez trouvé le bon numéro en {} coups  ! ".format(self.player.get_pseudo(),self.nb_essais))
-                    print(gain)
-                    new_gain = self.player.get_money() + gain
-                    self.player.set_money(new_gain)
-                    print("Votre solde est de : {} euros".format(new_gain))
+                    print("Bingo {} ! Vous avez trouvé le bon numéro en {} coups  ! ".format(self.player.get_pseudo(),self.nb_coup))
+                    self.apply_gain(mise, nb_essais_max)
+                    print("Votre solde est de : {} euros".format(self.player.get_money()))
                     new_level = self.player.get_level() + 1
                     if new_level <= 3:
                         self.player.set_level(new_level)
@@ -161,24 +178,28 @@ class Casino:
 
         if not reussite:
 
-            print("Dommage vous avez perdu ! Le nombre exact est : {}".format(nb_a_trouver))
-            self.loose_gain(nb_mise=mise)
+            print("Dommage vous avez perdu ! Le nombre exact est : {}".format(nb_python))
+            self.apply_gain(mise, nb_essais_max)
             print("Vous avez perdu : {} euros. ".format(mise))
             new_level = self.player.get_level() - 1
-            if new_level > 1 :
+            if new_level >= 1 :
                 self.player.set_level(new_level)
             print("Vous êtes niveau : {}".format(self.player.get_level()))
 
         self.game_played(mise, reussite)
 
-    def game_played(self,nb_mise, reussite):
-        response = supabase.table('Historique').insert({'user_id':self.player.get_id(),'nb_try':self.nb_essais,'mise':nb_mise,'level':self.current_level, 'correct':reussite}).execute()
+    def game_played(self, mise, reussite):
+        response = supabase.table('Historique').insert({'user_id':self.player.get_id(),'nb_try':self.nb_coup,'mise':int(mise),'level':self.current_level, 'correct':reussite}).execute()
 
     def play(self):
+        if (input("Avant de jouer, souhaitez vous consulter les règles du Casino ? Y/N : ")) == "Y":
+            self.display_rule = True
         while True:
-            self.player_gain()
+            self.partie()
             if input("Continuer à jouer ? Y/N : ") == "N":
                 break
+        if input("Consulter vos stats ? Y/N : ") == "Y":
+            self.stat()
         print('Le Casino vous remercie, à Bientôt !')
 
     def stat(self):
@@ -202,29 +223,26 @@ class Casino:
         print(f'\n# ACCOUNT STAT OF {self.player.get_id()}:{self.player.get_pseudo()} #\nCurrent Balance : {self.player.get_money()}$\nGame played : {size}\nFavorite Level : {fav_level}\nHighest Played Level : {highest_level}\nActual Level : {self.player.get_level()}\nAVG Mise : {round(avg_mise,2)}$\nWin Rate : {round(winrate*100,2)}%\n#')
 
     def get_input(self):
-        self.user_input = None
+        self.nb_user = None
         start = time()
-        while self.user_input is None:
+        while self.nb_user is None:
             try:
                 print("Vous avez 10sec pour Selectionner une valeur entre 0 et {} : ".format(self.current_level*10))
-                self.user_input = int(input())
+                self.nb_user = int(input())
                 if (time()-start) > 10:
-                    self.user_input = None
+                    self.nb_user = None
                     return False
                 else :
                     return True
             except:
                 print("Cette entrée n'est pas un entier. Veuillez réessayer (le compteur tourne)")
-                self.user_input = None
+                self.nb_user = None
 
         
 
 
 # Main program #
 if __name__ == "__main__":
-    user = User(input("\nPseudo : "))
-    Instance = Casino(player=user)
-    if input('Play/Stat : ') == "Play":
-        Instance.play()
-    elif "Stat":
-        Instance.stat()
+    user = User(input("Je suis Python. Quel est votre pseudo ? "))
+    instance = Casino(player=user)
+    instance.play()

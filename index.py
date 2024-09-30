@@ -1,6 +1,7 @@
 # IMPORTS #
 from supabase import create_client, Client
-
+import random
+import math
 # API #
 url: str = "https://frqopmgtjlnbdglpkjiu.supabase.co"
 key: str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZycW9wbWd0amxuYmRnbHBraml1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjc2OTExMTIsImV4cCI6MjA0MzI2NzExMn0.Ke--_ynpBjmgVRHNK-A5eMktpkQ6sQ135H7KMoyBTT0"
@@ -19,6 +20,53 @@ def get_user_from_pseudo(pseudo:str):
             money = _user['money']
             return __id, pseudo, money, level
     return None
+
+
+def random_number(level):
+    # valeur par défault
+    nb_try = 1
+    # création des levels
+    for i in range(3):
+        nb_try += 2
+        random_nb = random.randrange(1, 10*(i+1))
+        if i == level -1:
+            return {'nb_try' : nb_try, 'random_nb' : random_nb}
+        else : 
+            print('Rentrez un niveau valide !')
+        
+
+def player_gain():
+    gain = define_gain(1)
+    level_data = random_number(1)
+    nb_cout = 0
+    while nb_cout < level_data['nb_try']:
+        nb_cout +=1
+        nb = int(input("Devine le nombre auquel je pense  : "))
+        if nb > level_data["random_nb"]:
+            print("Trop grand ! ")
+        elif nb < level_data['random_nb']:
+            print("Trop petit ! ")
+        else : 
+            print("Bingo ! Vous avez trouvé le bon numéro en {} coups  ! ".format(nb_cout))
+            print("Votre gain est de : {} euros".format(gain))
+            break
+    else : 
+        print("Dommage vous avez perdu ! Le nombre exact est : {}".format(level_data['random_nb']))
+        
+        
+
+
+def define_gain(level):
+    # demande ma mise
+    nb_mise = int(input("Entrez votre mise : "))
+    while nb_mise == 0 :
+        nb_mise = int(input("Entrez une valeur supérieur à 0 : "))
+    gain = round(math.exp(level)*nb_mise, 2)
+    return gain
+
+
+
+
 
 # CLASS #
 class User:
@@ -57,10 +105,7 @@ class User:
         # MAJ user dans la BDD
         response = supabase.table('User').update({'pseudo':self.get_pseudo(),'level':self.get_level()}).eq('id',self.__id).execute()
         
-    def solde_verification(self) : 
-        response = supabase.table('User').select('money').eq('id',self.__id).execute()
-        print(response)
-  
+
     
     def __str__(self):
         # methode pour le print
@@ -86,3 +131,4 @@ class User:
 
 user = User(input(("\nPseudo : ")))
 print(user)
+player_gain()

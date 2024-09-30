@@ -39,6 +39,8 @@ class User:
     def __str__(self):
         # methode pour le print
         return self.get_pseudo() + " is at level " + str(self.get_level())
+
+
 #table_User = {id:int,
 #              pseudo:str,
 #              level:int
@@ -51,4 +53,5 @@ class User:
 #                    }
 
 # Charger/créer un utilisateur
+
 user = User(input(("\nPseudo : ")))

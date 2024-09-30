@@ -33,27 +33,6 @@ def random_number(level):
             return {'nb_try' : nb_try, 'random_nb' : random_nb}
         else : 
             print('Rentrez un niveau valide !')
-        
-
-def player_gain():
-    gain = define_gain(1)
-    level_data = random_number(1)
-    nb_cout = 0
-    while nb_cout < level_data['nb_try']:
-        nb_cout +=1
-        nb = int(input("Devine le nombre auquel je pense  : "))
-        if nb > level_data["random_nb"]:
-            print("Trop grand ! ")
-        elif nb < level_data['random_nb']:
-            print("Trop petit ! ")
-        else : 
-            print("Bingo ! Vous avez trouvé le bon numéro en {} coups  ! ".format(nb_cout))
-            print("Votre gain est de : {} euros".format(gain))
-            break
-    else : 
-        print("Dommage vous avez perdu ! Le nombre exact est : {}".format(level_data['random_nb']))
-        
-        
 
 
 def define_gain(level):
@@ -63,9 +42,6 @@ def define_gain(level):
         nb_mise = int(input("Entrez une valeur supérieur à 0 : "))
     gain = round(math.exp(level)*nb_mise, 2)
     return gain
-
-
-
 
 
 # CLASS #
@@ -127,8 +103,26 @@ class User:
 # Charger/créer un utilisateur
 ########################################
 
+def player_gain(player:User):
+    gain = define_gain(player.get_level())
+    level_data = random_number(player.get_level())
+    nb_cout = 0
+    while nb_cout < level_data['nb_try']:
+        nb_cout +=1
+        nb = int(input("Devine le nombre auquel je pense  : "))
+        if nb > level_data["random_nb"]:
+            print("Trop grand ! ")
+        elif nb < level_data['random_nb']:
+            print("Trop petit ! ")
+        else :
+            print("Bingo ! Vous avez trouvé le bon numéro en {} coups  ! ".format(nb_cout))
+            print("Votre gain est de : {} euros".format(gain))
+            break
+    else :
+        print("Dommage vous avez perdu ! Le nombre exact est : {}".format(level_data['random_nb']))
+
 # Main program #
 
 user = User(input(("\nPseudo : ")))
 print(user)
-player_gain()
+player_gain(player=user)

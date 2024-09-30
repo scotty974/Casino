@@ -35,7 +35,12 @@ class User:
     def update(self):
         # MAJ user dans la BDD
         response = supabase.table('User').update({'pseudo':self.get_pseudo(),'level':self.get_level()}).eq('id',self.__id).execute()
-
+        
+    def solde_verification(self) : 
+        response = supabase.table('User').select('money').eq('id',self.__id).execute()
+        print(response)
+  
+    
     def __str__(self):
         # methode pour le print
         return self.get_pseudo() + " is at level " + str(self.get_level())

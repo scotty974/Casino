@@ -9,5 +9,3 @@ def define_gain(level):
 
 
 
-
-print(define_gain(1))

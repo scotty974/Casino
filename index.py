@@ -35,13 +35,7 @@ def random_number(level):
             print('Rentrez un niveau valide !')
 
 
-def define_gain(level):
-    # demande ma mise
-    nb_mise = int(input("Entrez votre mise : "))
-    while nb_mise == 0 :
-        nb_mise = int(input("Entrez une valeur supérieur à 0 : "))
-    gain = round(math.exp(level)*nb_mise, 2)
-    return gain
+
 
 
 # CLASS #
@@ -67,6 +61,7 @@ class User:
 
     def set_solde(self, new_money):
         self.money = new_money
+        self.update()
 
     def get_pseudo(self):
         return self.pseudo
@@ -79,7 +74,7 @@ class User:
 
     def update(self):
         # MAJ user dans la BDD
-        response = supabase.table('User').update({'pseudo':self.get_pseudo(),'level':self.get_level()}).eq('id',self.__id).execute()
+        response = supabase.table('User').update({'pseudo':self.get_pseudo(),'level':self.get_level(), 'money' : self.get_solde()}).eq('id',self.__id).execute()
         
 
     
@@ -102,9 +97,24 @@ class User:
 #
 # Charger/créer un utilisateur
 ########################################
+def define_gain(level, player:User):
+    # demande ma mise
+    nb_mise = int(input("Entrez votre mise : "))
+    while nb_mise == 0 :
+        nb_mise = int(input("Entrez une valeur supérieur à 0 : "))
+    if player.get_solde() < nb_mise : 
+        response = input("Vous n'avez pas assez d'argent ! Voulez vous rajouter de l'argent ? Y/N : ")
+        if response == 'Y':
+            new_money = int(input("Entrez la somme : "))
+            player.set_solde(player.get_solde() + new_money)
+        elif response == 'N' : 
+            nb_mise = int(input("Entrez une nouvelle mise : "))
+        
+    gain = round(math.exp(level)*nb_mise, 2)
+    return gain
 
 def player_gain(player:User):
-    gain = define_gain(player.get_level())
+    gain = define_gain(player.get_level(), player=player)
     level_data = random_number(player.get_level())
     nb_cout = 0
     while nb_cout < level_data['nb_try']:
@@ -116,7 +126,10 @@ def player_gain(player:User):
             print("Trop petit ! ")
         else :
             print("Bingo ! Vous avez trouvé le bon numéro en {} coups  ! ".format(nb_cout))
-            print("Votre gain est de : {} euros".format(gain))
+            print(gain)
+            new_gain = player.get_solde() + gain
+            player.set_solde(new_gain)
+            print("Votre solde est de : {} euros".format(new_gain))
             break
     else :
         print("Dommage vous avez perdu ! Le nombre exact est : {}".format(level_data['random_nb']))

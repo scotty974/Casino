@@ -23,20 +23,9 @@ def get_user_from_pseudo(pseudo:str):
 
 
 def random_number(level):
-    # valeur par défault
-    nb_try = 1
-    # création des levels
-    for i in range(3):
-        nb_try += 2
-        random_nb = random.randrange(1, 10*(i+1))
-        if i == level -1:
-            return {'nb_try' : nb_try, 'random_nb' : random_nb}
-        else : 
-            print('Rentrez un niveau valide !')
-
-
-
-
+    liste_a = [3,5,7]
+    liste_b = [10,20,30]
+    return {'nb_try' : liste_a[level-1], 'random_nb' : liste_b[level-1]}
 
 # CLASS #
 class User:
@@ -130,7 +119,7 @@ class Casino:
     def choose_level(self):
         self.current_level = None
         while self.current_level is None:
-            level = int(input("Choisi ton level"))
+            level = int(input("Choisi ton level [1,2,3] : "))
             if level <= self.player.get_level():
                 self.current_level = level
                 break
@@ -158,27 +147,54 @@ class Casino:
                 new_level = self.player.get_level() + 1
                 if new_level <= 3:
                     self.player.set_level(new_level)
-                print("Vous êtes au niveau {}".format(new_level))
+                print("Vous êtes au niveau {}".format(self.player.get_level()))
+                reussite = True
                 break
         else :
             print("Dommage vous avez perdu ! Le nombre exact est : {}".format(level_data['random_nb']))
             self.loose_gain(nb_mise=nb_mise)
             print("Vous avez perdu : {} euros. ".format(nb_mise))
             new_level = self.player.get_level() - 1
-            if new_level <= 1 :
+            if new_level > 1 :
                 self.player.set_level(new_level)
-            print("Vous êtes niveau : {}".format(new_level))
-        self.game_played(nb_coups, nb_mise)
+            print("Vous êtes niveau : {}".format(self.player.get_level()))
+            reussite = False
+        self.game_played(nb_coups, nb_mise, reussite)
 
-    def game_played(self,nb_coups,nb_mise):
-        response = supabase.table('Historique').insert({'user_id':self.player.get_id(),'nb_try':nb_coups,'mise':nb_mise,'level':self.current_level}).execute()
+    def game_played(self,nb_coups,nb_mise, reussite):
+        response = supabase.table('Historique').insert({'user_id':self.player.get_id(),'nb_try':nb_coups,'mise':nb_mise,'level':self.current_level, 'correct':reussite}).execute()
 
     def play(self):
-        self.player_gain()
+        while True:
+            self.player_gain()
+            if input("Continuer à jouer ? Y/N : ") == "N":
+                break
+        print('Le Casino vous remercie, à Bientôt !')
+
+    def stat(self):
+        response = supabase.table('Historique').select('mise','level','correct','nb_try').eq('user_id',self.player.get_id()).execute()
+        print(response)
+        size = len(response['data'])
+        # utiliser panda içi
+        somme_mise = 0
+        nb_reussite = 0
+        liste_levels = []
+        for hist in response['data']:
+            somme_mise += hist['mise']
+            liste_levels += hist['level']
+            if hist['correct'] == True:
+                nb_reussites += 1
+        avg_mise = somme_mise/size
+        ratio_win = nb_reussite/size
+        print(f'avg mise : {avg_mise}\nratio win : {ratio_win}')
+
 
 # Main program #
 
 user = User(input("\nPseudo : "))
 print(user)
 Instance = Casino(player=user)
-Instance.play()
+if input('Play/Stat : ') == "Play":
+    Instance.play()
+elif "Stat":
+    Instance.stat()

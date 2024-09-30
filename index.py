@@ -15,7 +15,7 @@ class User:
                 #user already exist
                 self.pseudo = pseudo
                 self.level = _user['level']
-                self.id = _user['id']
+                self.__id = _user['id']
                 self.state = 1
                 break
         if self.state == 0:
@@ -29,11 +29,16 @@ class User:
     def get_level(self):
         return self.level
 
-    def set_level(self, new_level):
+    def set_level(self, new_level:int):
         self.level = new_level
 
     def update(self):
-        response = supabase.table('User')
+        # MAJ user dans la BDD
+        response = supabase.table('User').update({'pseudo':self.get_pseudo(),'level':self.get_level()}).eq('id',self.__id).execute()
+
+    def __str__(self):
+        # methode pour le print
+        return self.get_pseudo() + " is at level " + str(self.get_level())
 
 
 #table_User = {id:int,
@@ -48,5 +53,5 @@ class User:
 #                    }
 
 # Charger/créer un utilisateur
+
 user = User(input(("\nPseudo : ")))
-#

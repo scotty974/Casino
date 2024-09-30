@@ -1,7 +1,7 @@
 import random
 def random_number(level):
     # valeur par défault
-    nb_try = 3
+    nb_try = 1
     # création des levels
     for i in range(3):
         nb_try += 2

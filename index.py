@@ -1,7 +1,7 @@
 # IMPORTS #
 from supabase import create_client, Client
 import random
-from time import time, sleep
+from time import time
 # API #
 url: str = "https://frqopmgtjlnbdglpkjiu.supabase.co"
 key: str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZycW9wbWd0amxuYmRnbHBraml1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjc2OTExMTIsImV4cCI6MjA0MzI2NzExMn0.Ke--_ynpBjmgVRHNK-A5eMktpkQ6sQ135H7KMoyBTT0"
@@ -95,7 +95,6 @@ class Casino:
         self.current_level = None
         self.nb_user = None
         print(f"Hello {self.player.get_pseudo()}, vous avez {self.player.get_money()}$, Très bien ! Installez vous SVP à la table de pari.")
-        sleep(1)
 
     def loose_gain(self,mise):
         return self.player.set_money(self.player.get_money() - mise)
@@ -134,16 +133,19 @@ class Casino:
 
 
     def apply_gain(self, mise, nb_essais_max):
-        l3 = [2,1,0.5]
-        l5 = [4]+l3+[0.25]
-        l7 = [8]+l5+[0.125]
-        if nb_essais_max == 3:
-            money = l3[self.nb_coup-1]*mise
-        elif nb_essais_max == 5:
-            money = l5[self.nb_coup-1]*mise
-        elif nb_essais_max == 7:
-            money = l7[self.nb_coup-1]*mise
-        self.player.set_money(self.player.get_money()+money)
+        if nb_essais_max < self.nb_coup:
+            pass
+        else:
+            l3 = [2,1,0.5]
+            l5 = [4]+l3+[0.25]
+            l7 = [8]+l5+[0.125]
+            if nb_essais_max == 3:
+                money = l3[self.nb_coup-1]*mise
+            elif nb_essais_max == 5:
+                money = l5[self.nb_coup-1]*mise
+            elif nb_essais_max == 7:
+                money = l7[self.nb_coup-1]*mise
+            self.player.set_money(self.player.get_money()+money)
 
     def partie(self):
 
@@ -176,7 +178,7 @@ class Casino:
                     break
 
         if not reussite:
-
+            self.nb_coup += 1
             print("Dommage vous avez perdu ! Le nombre exact est : {}".format(nb_python))
             self.apply_gain(mise, nb_essais_max)
             print("Vous avez perdu : {} euros. ".format(mise))

@@ -94,7 +94,6 @@ class Casino:
         self.player = player
         self.current_level = None
         self.nb_user = None
-        self.display_rule = False
         print(f"Hello {self.player.get_pseudo()}, vous avez {self.player.get_money()}$, Très bien ! Installez vous SVP à la table de pari.")
         sleep(1)
 
@@ -193,7 +192,15 @@ class Casino:
 
     def play(self):
         if (input("Avant de jouer, souhaitez vous consulter les règles du Casino ? Y/N : ")) == "Y":
-            self.display_rule = True
+            print("""Le jeu comporte 3 levels avec la possibilié que le joueur choissise son level (si ce n'est pas sa 1è fois dans le Casino).
+	En d'autres termes, tout nouveau joueur doit passer par le 1è level. Suite à la 1è partie, il a le droit de choisir son level en lui rappelant / proposant le dernier niveau atteint\n.
+	Lors de chaque niveau, Python tire un nombre : level 1 (entre 1 et 10),
+	level2 (1 et 20), level3 (1 et 30). C'est à vous de deviner le nombre mystérieux avec 3 essais (en tout) lors du 1è 
+	level, 5 au 2è level et 7 au 3è level. Chaque essai ne durera pas plus de 10 secondes. Au-delà, 
+	vous perdez votre essai. Att : si vous perdez un level, vous rejouez le level précédent.
+	Quand vous souhaitez quitter le jeu, un compteur de 10 secondes est mis en place. 
+	En absence de validation de la décision, le jeu est terminé.
+	Python fournit enfin les statistiques du jeu (voir ci-dessous).""")
         while True:
             self.partie()
             if input("Continuer à jouer ? Y/N : ") == "N":

@@ -1,15 +1,14 @@
 # IMPORTS #
 from supabase import create_client, Client
 import random
-import math
-import threading
-from time import time
+from time import time, sleep
 # API #
 url: str = "https://frqopmgtjlnbdglpkjiu.supabase.co"
 key: str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZycW9wbWd0amxuYmRnbHBraml1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjc2OTExMTIsImV4cCI6MjA0MzI2NzExMn0.Ke--_ynpBjmgVRHNK-A5eMktpkQ6sQ135H7KMoyBTT0"
 supabase: Client = create_client(url, key)
 
 # FUNCTIONS #
+
 def get_user_from_pseudo(pseudo:str):
     response = supabase.table('User').select('*').execute()
     for _user in response.data:
@@ -97,6 +96,7 @@ class Casino:
         self.nb_user = None
         self.display_rule = False
         print(f"Hello {self.player.get_pseudo()}, vous avez {self.player.get_money()}$, Très bien ! Installez vous SVP à la table de pari.")
+        sleep(1)
 
     def loose_gain(self,mise):
         return self.player.set_money(self.player.get_money() - mise)
